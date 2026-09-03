@@ -77,6 +77,7 @@ export default function Upload() {
 
         setStatusText('Analysis complete, redirecting...');
         console.log(data);
+        navigate(`/resume/${uuid}`);
     }
 
     const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
