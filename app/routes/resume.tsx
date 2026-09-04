@@ -45,7 +45,8 @@ export default function Resume() {
             const imageUrl = URL.createObjectURL(imageBlob);
             setImageUrl(imageUrl);
 
-            setFeedback(data.feedback);
+            setFeedback(JSON.parse(data.feedback));
+            // 55c0b157-2f11-4938-a4ac-adb29dcd368d
             console.log({ resumeUrl, imageUrl, feedback: data.feedback });
         }
 
