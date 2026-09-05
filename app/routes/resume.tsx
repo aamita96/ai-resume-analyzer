@@ -24,33 +24,45 @@ export default function Resume() {
     }, [isLoading])
 
     useEffect(() => {
+        let cancelled = false;
+        let loadedResumeUrl = '';
+        let loadedImageUrl = '';
+
         const loadResume = async () => {
             const resume = await kv.get(`resume:${id}`);
 
-            if (!resume) return;
+            if (!resume || cancelled) return;
 
             const data = JSON.parse(resume);
 
             const resumeBlob = await fs.read(data.resumePath);
-            if (!resumeBlob) return;
+            if (!resumeBlob || cancelled) return;
 
-            const pdfBlob = new Blob([resumeBlob], { type: 'application/json' });
-            const resumeUrl = URL.createObjectURL(pdfBlob);
+            const pdfBlob = new Blob([resumeBlob], { type: 'application/pdf' });
+            loadedResumeUrl = URL.createObjectURL(pdfBlob);
 
-            setResumeUrl(resumeUrl);
+            setResumeUrl(loadedResumeUrl);
 
             const imageBlob = await fs.read(data.imagePath);
-            if (!imageBlob) return;
+            if (!imageBlob || cancelled) return;
 
-            const imageUrl = URL.createObjectURL(imageBlob);
-            setImageUrl(imageUrl);
+            loadedImageUrl = URL.createObjectURL(imageBlob);
+            setImageUrl(loadedImageUrl);
 
-            setFeedback(JSON.parse(data.feedback));
-            // 55c0b157-2f11-4938-a4ac-adb29dcd368d
-            console.log({ resumeUrl, imageUrl, feedback: data.feedback });
+            if (data.feedback) {
+                setFeedback(JSON.parse(data.feedback));
+            }
         }
 
-        loadResume();
+        loadResume().catch(error => {
+            if (!cancelled) console.error('Failed to load resume', error);
+        });
+
+        return () => {
+            cancelled = true;
+            if (loadedResumeUrl) URL.revokeObjectURL(loadedResumeUrl);
+            if (loadedImageUrl) URL.revokeObjectURL(loadedImageUrl);
+        };
     }, [id]);
     return (
         <main className="!pt-0">
